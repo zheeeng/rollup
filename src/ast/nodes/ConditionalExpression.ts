@@ -7,6 +7,7 @@ import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from '.
 import { NodeType } from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { RenderOptions } from '../../utils/renderHelpers';
+import Import from './Import';
 
 export default class ConditionalExpression extends NodeBase {
 	type: NodeType.ConditionalExpression;
@@ -68,8 +69,8 @@ export default class ConditionalExpression extends NodeBase {
 		);
 	}
 
-	initialiseChildren(parentScope: Scope) {
-		super.initialiseChildren(parentScope);
+	initialiseChildren(parentScope: Scope, dynamicImportReturnList: Import[]) {
+		super.initialiseChildren(parentScope, dynamicImportReturnList);
 		if (this.module.graph.treeshake) {
 			this.testValue = this.test.getValue();
 

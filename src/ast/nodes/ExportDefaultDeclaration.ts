@@ -1,4 +1,4 @@
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { ExpressionNode, Node, NodeBase } from './shared/Node';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import ClassDeclaration, { isClassDeclaration } from './ClassDeclaration';
 import FunctionDeclaration, { isFunctionDeclaration } from './FunctionDeclaration';
@@ -34,6 +34,10 @@ function getIdInsertPosition(code: string, declarationKeyword: string, start = 0
 }
 
 const needsToBeWrapped = isObjectExpression;
+
+export function isExportDefaultDeclaration(node: Node): node is ExportDefaultDeclaration {
+	return node.type === NodeType.ExportDefaultDeclaration;
+}
 
 export default class ExportDefaultDeclaration extends NodeBase {
 	type: NodeType.ExportDefaultDeclaration;

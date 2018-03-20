@@ -19,7 +19,9 @@ import { Node } from './ast/nodes/shared/Node';
 import ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
 import ImportDeclaration from './ast/nodes/ImportDeclaration';
 import Identifier from './ast/nodes/Identifier';
-import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
+import ExportDefaultDeclaration, {
+	isExportDefaultDeclaration
+} from './ast/nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ImportDefaultSpecifier from './ast/nodes/ImportDefaultSpecifier';
@@ -28,12 +30,11 @@ import { RollupWarning } from './rollup/index';
 import ExternalModule from './ExternalModule';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import Import from './ast/nodes/Import';
-import { NodeType } from './ast/nodes/index';
+import nodeConstructors, { NodeType } from './ast/nodes/index';
 import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
 import { isLiteral } from './ast/nodes/Literal';
 import Chunk from './Chunk';
 import { RenderOptions } from './utils/renderHelpers';
-import nodeConstructors from './ast/nodes/index';
 
 export interface IdMap {
 	[key: string]: string;
@@ -277,14 +278,14 @@ export default class Module {
 					};
 				}
 			}
-		} else if (node.type === NodeType.ExportDefaultDeclaration) {
+		} else if (isExportDefaultDeclaration(node)) {
 			// export default function foo () {}
 			// export default foo;
 			// export default 42;
 			const identifier =
-				((<FunctionDeclaration>(<ExportDefaultDeclaration>node).declaration).id &&
-					(<FunctionDeclaration>(<ExportDefaultDeclaration>node).declaration).id.name) ||
-				(<Identifier>(<ExportDefaultDeclaration>node).declaration).name;
+				((<FunctionDeclaration>node.declaration).id &&
+					(<FunctionDeclaration>node.declaration).id.name) ||
+				(<Identifier>node.declaration).name;
 			if (this.exports.default) {
 				this.error(
 					{
@@ -367,9 +368,9 @@ export default class Module {
 	}
 
 	private analyse() {
-		this.ast = new Program(this.esTreeAst, nodeConstructors, {}, this, this.dynamicImports);
+		this.ast = new Program(this.esTreeAst, nodeConstructors, {}, this);
 		for (const node of this.ast.body) {
-			node.initialise(this.scope);
+			node.initialise(this.scope, this.dynamicImports);
 		}
 		for (const node of this.ast.body) {
 			if ((<ImportDeclaration>node).isImportDeclaration) {

@@ -2,11 +2,12 @@ import MagicString from 'magic-string';
 import Scope from '../scopes/Scope';
 import { StatementBase } from './shared/Node';
 import { RenderOptions } from '../../utils/renderHelpers';
+import Import from './Import';
 
 export default class ExpressionStatement extends StatementBase {
 	directive?: string;
 
-	initialiseNode(_parentScope: Scope) {
+	initialiseNode(_parentScope: Scope, dynamicImportReturnList: Import[]) {
 		if (this.directive && this.directive !== 'use strict' && this.parent.type === 'Program') {
 			this.module.warn(
 				// This is necessary, because either way (deleting or not) can lead to errors.
@@ -20,7 +21,7 @@ export default class ExpressionStatement extends StatementBase {
 			);
 		}
 
-		return super.initialiseNode(_parentScope);
+		return super.initialiseNode(_parentScope, dynamicImportReturnList);
 	}
 
 	shouldBeIncluded() {
