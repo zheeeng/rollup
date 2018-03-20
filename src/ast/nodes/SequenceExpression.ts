@@ -22,13 +22,11 @@ export default class SequenceExpression extends NodeBase {
 		if (this.expressions[this.expressions.length - 1].includeInBundle()) {
 			addedNewNodes = true;
 		}
-		this.expressions.forEach(node => {
-			if (node.shouldBeIncluded()) {
-				if (node.includeInBundle()) {
-					addedNewNodes = true;
-				}
+		for (const expression of this.expressions) {
+			if (expression.shouldBeIncluded() && expression.includeInBundle()) {
+				addedNewNodes = true;
 			}
-		});
+		}
 		return addedNewNodes;
 	}
 
