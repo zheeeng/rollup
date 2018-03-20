@@ -9,8 +9,6 @@ import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL';
 import error, { RollupError } from './utils/error';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import extractNames from './ast/utils/extractNames';
-import enhance from './ast/enhance';
-import clone from './ast/clone';
 import ModuleScope from './ast/scopes/ModuleScope';
 import { RawSourceMap } from 'source-map';
 import ImportSpecifier from './ast/nodes/ImportSpecifier';
@@ -35,6 +33,7 @@ import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
 import { isLiteral } from './ast/nodes/Literal';
 import Chunk from './Chunk';
 import { RenderOptions } from './utils/renderHelpers';
+import nodeConstructors from './ast/nodes/index';
 
 export interface IdMap {
 	[key: string]: string;
@@ -148,7 +147,7 @@ export default class Module {
 	chunk: Chunk;
 
 	ast: Program;
-	private astClone: Program;
+	private esTreeAst: any;
 
 	// this is unused on Module,
 	// only used for namespace and then ExternalExport.declarations
@@ -203,7 +202,7 @@ export default class Module {
 		code: string;
 		originalCode: string;
 		originalSourcemap: RawSourceMap;
-		ast: Program;
+		ast: any;
 		sourcemapChain: RawSourceMap[];
 		resolvedIds?: IdMap;
 	}) {
@@ -214,16 +213,7 @@ export default class Module {
 
 		timeStart('generate ast', 3);
 
-		if (ast) {
-			// prevent mutating the provided AST, as it may be reused on
-			// subsequent incremental rebuilds
-			this.ast = clone(ast);
-			this.astClone = ast;
-		} else {
-			// TODO what happens to comments if AST is provided?
-			this.ast = <any>tryParse(this, this.graph.acornParse, this.graph.acornOptions);
-			this.astClone = clone(this.ast);
-		}
+		this.esTreeAst = ast || tryParse(this, this.graph.acornParse, this.graph.acornOptions);
 
 		timeEnd('generate ast', 3);
 
@@ -377,7 +367,10 @@ export default class Module {
 	}
 
 	private analyse() {
-		enhance(this.ast, this, this.dynamicImports);
+		this.ast = new Program(this.esTreeAst, nodeConstructors, {}, this, this.dynamicImports);
+		for (const node of this.ast.body) {
+			node.initialise(this.scope);
+		}
 		for (const node of this.ast.body) {
 			if ((<ImportDeclaration>node).isImportDeclaration) {
 				this.addImport(<ImportDeclaration>node);
@@ -626,7 +619,7 @@ export default class Module {
 			code: this.code,
 			originalCode: this.originalCode,
 			originalSourcemap: this.originalSourcemap,
-			ast: this.astClone,
+			ast: this.esTreeAst,
 			sourcemapChain: this.sourcemapChain,
 			resolvedIds: this.resolvedIds
 		};
