@@ -403,7 +403,7 @@ export default class Chunk {
 	}
 
 	private prepareDynamicImports({ format }: OutputOptions) {
-		const esm = format === 'esm' || format === 'es';
+		const esm = format === 'es';
 		let dynamicImportMechanism: DynamicImportMechanism;
 		let hasDynamicImports = false;
 		if (!esm) {
@@ -487,7 +487,7 @@ export default class Chunk {
 
 	private setIdentifierRenderResolutions(options: OutputOptions) {
 		const used = Object.create(null);
-		const esm = options.format === 'esm' || options.format === 'es' || options.format === 'system';
+		const esm = options.format === 'es' || options.format === 'system';
 
 		// ensure no conflicts with globals
 		Object.keys(this.graph.scope.variables).forEach(name => (used[name] = 1));
