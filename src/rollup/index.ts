@@ -125,7 +125,7 @@ export interface InputOptions {
 	resolveExternal?: any;
 }
 
-export type ModuleFormat = 'amd' | 'cjs' | 'system' | 'es' | 'es6' | 'iife' | 'umd';
+export type ModuleFormat = 'amd' | 'cjs' | 'system' | 'esm' | 'es' | 'es6' | 'iife' | 'umd';
 
 export type OptionsPaths = Record<string, string> | ((id: string) => string);
 
@@ -229,7 +229,7 @@ function checkOutputOptions(options: OutputOptions) {
 
 	if (!options.format) {
 		error({
-			message: `You must specify options.format, which can be one of 'amd', 'cjs', 'system', 'es', 'iife' or 'umd'`,
+			message: `You must specify options.format, which can be one of 'amd', 'cjs', 'system', 'esm', 'iife' or 'umd'`,
 			url: `https://rollupjs.org/#format-f-output-format-`
 		});
 	}
@@ -503,7 +503,9 @@ export default function rollup(
 									.then(() => {
 										if (!inputOptions.experimentalPreserveModules) {
 											const mangleExportNames =
-												outputOptions.format === 'system' || outputOptions.format === 'es';
+												outputOptions.format === 'system' ||
+												outputOptions.format === 'esm' ||
+												outputOptions.format === 'es';
 											for (let chunk of chunks) {
 												chunk.generateInternalExports(mangleExportNames);
 											}
